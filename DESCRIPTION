@@ -1,0 +1,22 @@
+Package: brnome
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Italo",
+           family = "Cegatta",
+           role = c("aut", "cre"),
+           email = "italoceagatta@example.com")
+Description: Consulta a base de nomes levantados pelo Censo Demográfico 2010.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.0
+Imports: 
+    magrittr,
+    stringr,
+    xml2,
+    rvest,
+    jsonlite,
+    dplyr,
+    purrr
