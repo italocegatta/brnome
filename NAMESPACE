@@ -2,4 +2,5 @@
 
 export("%>%")
 export(brnome_freq)
+export(brnome_rank)
 importFrom(magrittr,"%>%")

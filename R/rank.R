@@ -1,0 +1,88 @@
+#' Rankin por sexo, decada ou localidade.
+#'
+#' Retorna ranking dos nomes segundo a frequencia de nascimentos por sexo, decada ou localidade.
+#'
+#' @param sexo Se `NULL` (default), a consulta pelo nome eh unissex. Valores podem ser "M". Para o sexo masculino, ou "F", para o feminino.
+#' @param decada Se `NULL` (default), a consulta eh para todas as decadas. Para especificar a decada, utilise um numero inteiro.
+#' @param localidade_cod Se `NULL` (default), a consulta eh para todo territorio. Para especificar uma localidade, utilize o identificador de um município ou de uma Unidade da Federação.
+#'
+#' @examples
+#' brnome_rank()
+#'
+#' @export
+brnome_rank <- function(sexo = NULL, localidade_cod = NULL, decada_nascimento = NULL) {
+
+  sexo <- verifica_sexo(sexo)
+
+  localidade <- verifica_localidade(localidade_cod)
+
+  decada <- verifica_decada(decada_nascimento)
+
+  consulta <- "https://servicodados.ibge.gov.br/api/v1/censos/nomes/faixa?qtd=20"
+
+  if (!is.null(sexo)) {
+    consulta <- stringr::str_glue("{consulta}&sexo={sexo}")
+  } else {
+    consulta <- stringr::str_glue("{consulta}&sexo=")
+  }
+
+  if (!is.null(localidade_cod)) {
+    consulta <- stringr::str_glue("{consulta}&regiao={localidade$localidade}")
+  } else {
+    consulta <- stringr::str_glue("{consulta}&regiao=0")
+  }
+
+  stringr::str_glue("{consulta}&faixa={seq(1930, 2010, 10)}") %>%
+    '['(., stringr::str_detect(., paste0("faixa=", decada + 10))) %>%
+    purrr::map_dfr(pega_tabela) %>%
+    dplyr::group_by(faixa) %>%
+    dplyr::mutate(
+      decada_nascimento = as.integer(stringr::str_extract(faixa, "[:digit:]{4}")) - 10L,
+      regiao = ifelse(regiao == 0, NA_character_, regiao),
+      sexo = ifelse(sexo == "", NA_character_, stringr::str_to_upper(sexo)),
+      rank = dplyr::row_number(-freq)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(nome, sexo, regiao, decada_nascimento, freq, rank) %>%
+    dplyr::arrange(-decada_nascimento, rank)
+}
+
+# antiga
+# brnome_rank <- function(sexo = NULL, decada = NULL, localidade_cod = NULL) {
+#
+#   if (!is.null(sexo) & !is.null(localidade_cod) & !is.null(decada)) {
+#     stop("Nao eh possivel utilizar mais de uma opcao de consulta. Utilize apenas uma das opcoes", call. = FALSE)
+#   }
+#
+#   sexo <- verifica_sexo(sexo)
+#
+#   localidade <- verifica_localidade(localidade_cod)
+#
+#   decada <- verifica_decada(decada)
+#
+#   consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v2/censos/nomes/ranking")
+#
+#   if (!is.null(sexo)) {
+#     consulta <- stringr::str_glue("{consulta}/?sexo={sexo}")
+#   }
+#
+#   if (!is.null(localidade_cod)) {
+#     consulta <- stringr::str_glue("{consulta}/?localidade={localidade$localidade}")
+#   }
+#
+#   if (!is.null(decada)) {
+#     consulta <- stringr::str_glue("{consulta}/?decada={decada}")
+#   }
+#
+#   pega_tabela(consulta) %>%
+#     dplyr::mutate(
+#       decada = ifelse(is.null(decada), NA, decada)
+#     ) %>%
+#     dplyr::left_join(localidade, by = c("localidade")) %>%
+#     dplyr::select(
+#       nome, sexo, decada, localidade_cod = localidade, localidade_nome,
+#       frequencia, ranking
+#     )
+# }
+
+
