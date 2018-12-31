@@ -3,9 +3,15 @@
 
 pega_tabela <- function(x) {
 
-  x %>%
+  string_req <- x %>%
     xml2::read_html() %>%
-    rvest::html_text() %>%
+    rvest::html_text()
+
+  if (string_req == "[]") {
+    return(NULL)
+  }
+
+  string_req %>%
     jsonlite::fromJSON() %>%
     dplyr::as_tibble() %>%
     tidyr::unnest()

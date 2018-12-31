@@ -44,33 +44,20 @@ brnome_rank <- function(sexo = NULL, decada = NULL, localidade_cod = NULL) {
     dplyr::mutate(
       decada = ifelse(is.null(decada), NA, decada)
     ) %>%
-    dplyr::left_join(localidades, by = c("localidade")) %>%
+    dplyr::left_join(localidade, by = c("localidade")) %>%
     dplyr::select(
       nome, sexo, decada, localidade_cod = localidade, localidade_nome,
       frequencia, ranking
+    ) %>%
+    dplyr::mutate(
+      localidade_cod = ifelse(
+        localidade_cod == "BR",
+        localidade_cod,
+        as.integer(localidade_cod)
+      )
     )
 
-  # if (!is.null(sexo)) {
-  #   tab$sexo <- toupper(sexo)
-  # }
-
-  if (is.null(localidade_cod)) {
-    tab$localidade_cod <- localidade$localidade
-    tab$localidade_nome <- localidade$localidade_nome
-  }
-
-  if (!is.null(decada)) {
-    tab$decada <- decada
-  }
-
-  dplyr::mutate(
-    tab,
-    localidade_cod = ifelse(
-      localidade_cod == "BR",
-      localidade_cod,
-      as.integer(localidade_cod)
-    )
-  )
+  tab
 }
 
 # brnome_rank <- function(sexo = NULL, localidade_cod = NULL, decada_nascimento = NULL) {

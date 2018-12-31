@@ -1,25 +1,26 @@
+library(brnome)
 
 # frequencia --------------------------------------------------------------
 
-load("R/sysdata.rda")
 library(magrittr)
-nome = c("joao", "maria")
+data("localidades")
+
 nome = "eliza"
 sexo = "f"
 localidade_cod = 33
-localidade_cod = 1100015
+localidade_cod = 1100023
 
 
 
-brnome_freq("italo")
+brnome_freq("Eliza")
 brnome_freq("italo", "f")
 brnome_freq("italo", "f", 33)
-brnome_freq("italo", localidade_cod = 33)
+brnome_freq("eliza", localidade_cod = 33)
+brnome_freq("eliza", localidade_cod =  1100023)
 brnome_freq("italo", localidade_cod =  3300100)
 
 # rank --------------------------------------------------------------------
 
-load("R/sysdata.rda")
 library(magrittr)
 sexo = "M"
 localidade_cod = 3300100

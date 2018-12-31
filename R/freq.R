@@ -32,34 +32,33 @@ brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL) {
     consulta <- stringr::str_glue("{consulta}?localidade={localidade$localidade}")
   }
 
+  tab <- pega_tabela(consulta)
+
+  if (is.null(tab)) return(NULL)
+
   tab <- pega_tabela(consulta) %>%
     dplyr::mutate(
       nascimento_periodo = corrige_periodo(periodo),
       nascimento_decada = as.integer(stringr::str_extract(periodo, "[:digit:]{4}"))
     ) %>%
-    dplyr::left_join(localidades, by = c("localidade")) %>%
+    dplyr::left_join(localidade, by = c("localidade")) %>%
     dplyr::select(
       nome, sexo, localidade_cod = localidade, localidade_nome,
       nascimento_periodo, nascimento_decada, frequencia
+    ) %>%
+    dplyr::mutate(
+      localidade_cod = ifelse(
+        localidade_cod == "BR",
+        localidade_cod,
+        as.integer(localidade_cod)
+      )
     )
 
   if (!is.null(sexo)) {
     tab$sexo <- toupper(sexo)
   }
 
-  if (is.null(localidade_cod)) {
-    tab$localidade_cod <- localidade$localidade
-    tab$localidade_nome <- localidade$localidade_nome
-  }
-
-  dplyr::mutate(
-    tab,
-    localidade_cod = ifelse(
-      localidade_cod == "BR",
-      localidade_cod,
-      as.integer(localidade_cod)
-    )
-  )
+  tab
 }
 
 # brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL) {
