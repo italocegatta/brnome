@@ -8,6 +8,7 @@ municipios <- "https://servicodados.ibge.gov.br/api/v1/localidades/municipios" %
     localidade = id,
     localidade_nome = nome
   ) %>%
+  dplyr::mutate(tipo = "Município") %>%
   dplyr::as_tibble()
 
 estados <- "https://servicodados.ibge.gov.br/api/v1/localidades/estados" %>%
@@ -18,6 +19,7 @@ estados <- "https://servicodados.ibge.gov.br/api/v1/localidades/estados" %>%
     localidade = id,
     localidade_nome = nome
   ) %>%
+  dplyr::mutate(tipo = "Estado") %>%
   dplyr::as_tibble()
 
 localidades <- dplyr::bind_rows(municipios, estados) %>%
