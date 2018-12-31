@@ -4,14 +4,18 @@
 load("R/sysdata.rda")
 library(magrittr)
 nome = c("joao", "maria")
-nome = "italo"
-sexo = "M"
+nome = "eliza"
+sexo = "f"
 localidade_cod = 33
+localidade_cod = 1100015
+
+
 
 brnome_freq("italo")
 brnome_freq("italo", "f")
-brnome_freq("italo", "f" , 33)
-brnome_freq("italo", "f" , 3300100)
+brnome_freq("italo", "f", 33)
+brnome_freq("italo", localidade_cod = 33)
+brnome_freq("italo", localidade_cod =  3300100)
 
 # rank --------------------------------------------------------------------
 
@@ -23,10 +27,12 @@ localidade_cod = 33
 decada = 2000
 
 brnome_rank()
+brnome_rank(sexo = "M")
 brnome_rank(localidade_cod = 33)
 brnome_rank(localidade_cod = 3300100)
-brnome_rank(sexo = "M")
 brnome_rank(decada = 2000)
+
+brnome_rank(sexo = "M", localidade_cod = 33)
 brnome_rank(sexo = "M", decada = 2000, localidade_cod = 3300100)
 
 

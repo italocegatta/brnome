@@ -12,62 +12,85 @@
 #' @export
 brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL) {
 
-  #nome <- stringr::str_c(nome, collapse = "%7C") # corrigir para aceitar so um nome
+  if (!is.null(sexo) & !is.null(localidade_cod)) {
+    stop("Sexo e localidade nao podem ser indicados em conjunto, especifique apenas um dos dois", call. = FALSE)
+  }
+
+  nome <- stringr::str_c(nome, collapse = "%7C")
 
   sexo <- verifica_sexo(sexo)
 
   localidade <- verifica_localidade(localidade_cod)
 
-  consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v1/censos/nomes/faixa?nome={nome}")
+  consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v2/censos/nomes/{nome}")
 
   if (!is.null(sexo)) {
-    consulta <- stringr::str_glue("{consulta}&sexo={sexo}")
+    consulta <- stringr::str_glue("{consulta}?sexo={sexo}")
   }
 
-  if (!is.null(localidade_cod)) {
-    consulta <- stringr::str_glue("{consulta}&regiao={localidade$localidade}")
+  if (!is.null(localidade)) {
+    consulta <- stringr::str_glue("{consulta}?localidade={localidade$localidade}")
   }
 
-  pega_tabela(consulta) %>%
+  tab <- pega_tabela(consulta) %>%
     dplyr::mutate(
-      decada_nascimento = as.integer(stringr::str_extract(faixa, "[:digit:]{4}")) - 10L,
-      regiao = ifelse(regiao == 0, NA_character_, regiao),
-      sexo = ifelse(sexo == "", NA_character_, stringr::str_to_upper(sexo))
+      nascimento_periodo = corrige_periodo(periodo),
+      nascimento_decada = as.integer(stringr::str_extract(periodo, "[:digit:]{4}"))
     ) %>%
-    dplyr::select(nome, sexo, regiao, decada_nascimento, freq)
+    dplyr::left_join(localidades, by = c("localidade")) %>%
+    dplyr::select(
+      nome, sexo, localidade_cod = localidade, localidade_nome,
+      nascimento_periodo, nascimento_decada, frequencia
+    )
+
+  if (!is.null(sexo)) {
+    tab$sexo <- toupper(sexo)
+  }
+
+  if (is.null(localidade_cod)) {
+    tab$localidade_cod <- localidade$localidade
+    tab$localidade_nome <- localidade$localidade_nome
+  }
+
+  dplyr::mutate(
+    tab,
+    localidade_cod = ifelse(
+      localidade_cod == "BR",
+      localidade_cod,
+      as.integer(localidade_cod)
+    )
+  )
 }
 
-# angita
 # brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL) {
 #
-#   if (!is.null(sexo) & !is.null(localidade_cod)) {
-#     stop("Sexo e localidade nao podem ser indicados em conjunto, especifique apenas um dos dois", call. = FALSE)
-#   }
-#
-#   nome <- stringr::str_c(nome, collapse = "%7C")
+#   #nome <- stringr::str_c(nome, collapse = "%7C") # corrigir para aceitar so um nome
 #
 #   sexo <- verifica_sexo(sexo)
 #
 #   localidade <- verifica_localidade(localidade_cod)
 #
-#   consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v2/censos/nomes/{nome}")
+#   consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v1/censos/nomes/faixa?nome={nome}")
 #
 #   if (!is.null(sexo)) {
-#     consulta <- stringr::str_glue("{consulta}?sexo={sexo}")
+#     consulta <- stringr::str_glue("{consulta}&sexo={sexo}")
 #   }
 #
-#   if (!is.null(localidade)) {
-#     consulta <- stringr::str_glue("{consulta}?localidade={localidade$localidade}")
+#   if (!is.null(localidade_cod)) {
+#     consulta <- stringr::str_glue("{consulta}&regiao={localidade$localidade}")
 #   }
 #
-#   pega_tabela(consulta) %>%
+#   tab <- pega_tabela(consulta)
+#
+#   if (nrow(tab) == 0) {
+#     return(data.frame(nome = NA, sexo = NA, regiao = NA, decada_nascimento = NA, freq = NA))
+#   }
+#
+#   tab %>%
 #     dplyr::mutate(
-#       nascimento_periodo = corrige_periodo(periodo),
-#       nascimento_decada = as.integer(stringr::str_extract(periodo, "[:digit:]{4}"))
+#       decada_nascimento = as.integer(stringr::str_extract(faixa, "[:digit:]{4}")) - 10L,
+#       regiao = ifelse(regiao == 0, NA_character_, regiao),
+#       sexo = ifelse(sexo == "", NA_character_, stringr::str_to_upper(sexo))
 #     ) %>%
-#     dplyr::left_join(localidade, by = c("localidade")) %>%
-#     dplyr::select(
-#       nome, sexo, localidade_cod = localidade, localidade_nome,
-#       nascimento_periodo, nascimento_decada, frequencia
-#     )
+#     dplyr::select(nome, sexo, regiao, decada_nascimento, freq)
 # }

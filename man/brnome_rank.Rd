@@ -4,15 +4,14 @@
 \alias{brnome_rank}
 \title{Rankin por sexo, decada ou localidade.}
 \usage{
-brnome_rank(sexo = NULL, localidade_cod = NULL,
-  decada_nascimento = NULL)
+brnome_rank(sexo = NULL, decada = NULL, localidade_cod = NULL)
 }
 \arguments{
-\item{sexo}{Se \code{NULL} (default), a consulta pelo nome eh unissex. Valores podem ser "M". Para o sexo masculino, ou "F", para o feminino.}
-
-\item{localidade_cod}{Se \code{NULL} (default), a consulta eh para todo territorio. Para especificar uma localidade, utilize o identificador de um município ou de uma Unidade da Federação.}
+\item{sexo}{Se \code{NULL} (default), a consulta pelo nome eh unissex. Valores podem ser "M", para o sexo masculino, ou "F", para o feminino.}
 
 \item{decada}{Se \code{NULL} (default), a consulta eh para todas as decadas. Para especificar a decada, utilise um numero inteiro.}
+
+\item{localidade_cod}{Se \code{NULL} (default), a consulta eh para todo territorio. Para especificar uma localidade, utilize o identificador de um município ou de uma Unidade da Federação.}
 }
 \description{
 Retorna ranking dos nomes segundo a frequencia de nascimentos por sexo, decada ou localidade.

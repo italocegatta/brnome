@@ -1,22 +1,29 @@
+library(magrittr)
 
-l_estado <- dplyr::select(
-  sf::st_set_geometry(brmap::brmap_estado, NULL),
-  localidade = cod_estado,
-  localidade_nome = estado_nome
-)
+municipios <- "https://servicodados.ibge.gov.br/api/v1/localidades/municipios" %>%
+  xml2::read_html() %>%
+  rvest::html_text() %>%
+  jsonlite::fromJSON() %>%
+  dplyr::select(
+    localidade = id,
+    localidade_nome = nome
+  ) %>%
+  dplyr::as_tibble()
 
-l_municipio <- dplyr::select(
-  sf::st_set_geometry(brmap::brmap_municipio, NULL),
-  localidade = cod_municipio,
-  localidade_nome = municipio
-)
+estados <- "https://servicodados.ibge.gov.br/api/v1/localidades/estados" %>%
+  xml2::read_html() %>%
+  rvest::html_text() %>%
+  jsonlite::fromJSON() %>%
+  dplyr::select(
+    localidade = id,
+    localidade_nome = nome
+  ) %>%
+  dplyr::as_tibble()
 
-df_localidade <- dplyr::mutate(
-  dplyr::bind_rows(l_estado, l_municipio),
-  localidade = as.character(localidade)
-)
+localidades <- dplyr::bind_rows(municipios, estados) %>%
+  dplyr::mutate(localidade = as.character(localidade))
 
 usethis::use_data(
-  df_localidade,
-  internal = TRUE, overwrite = TRUE
+  localidades,
+  overwrite = TRUE
 )

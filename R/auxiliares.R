@@ -36,11 +36,11 @@ verifica_localidade <- function(x) {
 
   if (!is.numeric(x)) {
 
-    stop("Localidade prace ser um valor numerico", call. = FALSE)
+    stop("Localidade deve ser um valor numerico", call. = FALSE)
   }
 
-  loc <- df_localidade %>%
-    dplyr::filter(localidade== as.character(x))
+  loc <- localidades %>%
+    dplyr::filter(localidade == as.integer(x))
 
   if (nrow(loc) == 0) {
     stop("Localidade incorreta", call. = FALSE)
