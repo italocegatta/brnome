@@ -40,10 +40,10 @@ verifica_localidade <- function(x) {
     stop("Insira apenas uma localidade", call. = FALSE)
   }
 
-  if (!is.numeric(x)) {
-
-    stop("Localidade deve ser um valor numerico", call. = FALSE)
-  }
+  # if (!is.numeric(x)) {
+  #
+  #   stop("Localidade deve ser um valor numerico", call. = FALSE)
+  # }
 
   loc <- localidades %>%
     dplyr::filter(localidade == as.integer(x))
