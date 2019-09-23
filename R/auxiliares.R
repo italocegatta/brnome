@@ -28,6 +28,21 @@ corrige_periodo <- function(x) {
     )
 }
 
+verifica_nome <- function(x) {
+
+  if (is.na(x) | !is.character(x)) {
+
+    stop("Indique um nome valido", call. = FALSE)
+  }
+
+  if (length(x) != 1) {
+
+    stop("Indique apenas um nome", call. = FALSE)
+  }
+
+  x
+}
+
 verifica_localidade <- function(x) {
 
   if (is.null(x)) {

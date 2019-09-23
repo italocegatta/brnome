@@ -10,86 +10,94 @@
 #' brnome_freq("italo", "m")
 #'
 #' @export
-brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL) {
+#'
+brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL, decada_nascimento = NULL) {
 
-  if (!is.null(sexo) & !is.null(localidade_cod)) {
-    stop("Sexo e localidade nao podem ser indicados em conjunto, especifique apenas um dos dois", call. = FALSE)
-  }
-
-  nome <- stringr::str_c(nome, collapse = "%7C")
+  nome <- verifica_nome(nome)
 
   sexo <- verifica_sexo(sexo)
 
   localidade <- verifica_localidade(localidade_cod)
 
-  consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v2/censos/nomes/{nome}")
+  consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v1/censos/nomes/faixa?nome={nome}")
 
   if (!is.null(sexo)) {
-    consulta <- stringr::str_glue("{consulta}?sexo={sexo}")
+    consulta <- stringr::str_glue("{consulta}&sexo={sexo}")
   }
 
-  if (!is.null(localidade)) {
-    consulta <- stringr::str_glue("{consulta}?localidade={localidade$localidade}")
+  if (!is.null(localidade_cod)) {
+    consulta <- stringr::str_glue("{consulta}&regiao={localidade$localidade}")
   }
 
   tab <- pega_tabela(consulta)
 
   if (is.null(tab)) return(NULL)
 
-  tab <- pega_tabela(consulta) %>%
-    dplyr::mutate(
-      nascimento_periodo = corrige_periodo(periodo),
-      nascimento_decada = as.integer(stringr::str_extract(periodo, "[:digit:]{4}"))
-    ) %>%
-    dplyr::left_join(localidade, by = c("localidade")) %>%
-    dplyr::select(
-      nome, sexo, localidade_cod = localidade, localidade_nome,
-      nascimento_periodo, nascimento_decada, frequencia
-    ) %>%
-    dplyr::mutate(
-      localidade_cod = ifelse(
-        localidade_cod == "BR",
-        localidade_cod,
-        as.integer(localidade_cod)
-      )
-    )
+  if (!is.null(decada_nascimento)) {
+    tab <- dplyr::filter(tab, faixa == paste0("<", decada_nascimento + 10))
 
-  if (!is.null(sexo)) {
-    tab$sexo <- toupper(sexo)
+    if (nrow(tab) == 0) stop("Filtro de decada incorreto", call. = FALSE)
   }
 
-  tab
+  tab %>%
+    dplyr::mutate(
+      decada_nascimento = as.integer(stringr::str_extract(faixa, "[:digit:]{4}")) - 10L,
+      regiao = ifelse(regiao == 0, NA_character_, as.character(regiao)),
+      sexo = ifelse(sexo == "", NA_character_, stringr::str_to_upper(sexo))
+    ) %>%
+    dplyr::left_join(localidades, by = c("regiao" = "localidade")) %>%
+    dplyr::select(nome, sexo, localidade = regiao, localidade_nome, decada_nascimento, frequencia = freq)
 }
 
+# api v2
 # brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL) {
 #
-#   #nome <- stringr::str_c(nome, collapse = "%7C") # corrigir para aceitar so um nome
+#   if (!is.null(sexo) & !is.null(localidade_cod)) {
+#     stop("Sexo e localidade nao podem ser indicados em conjunto, especifique apenas um dos dois", call. = FALSE)
+#   }
+#
+#   nome <- stringr::str_c(nome, collapse = "%7C")
 #
 #   sexo <- verifica_sexo(sexo)
 #
 #   localidade <- verifica_localidade(localidade_cod)
 #
-#   consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v1/censos/nomes/faixa?nome={nome}")
+#   consulta <- stringr::str_glue("https://servicodados.ibge.gov.br/api/v2/censos/nomes/{nome}")
 #
 #   if (!is.null(sexo)) {
-#     consulta <- stringr::str_glue("{consulta}&sexo={sexo}")
+#     consulta <- stringr::str_glue("{consulta}?sexo={sexo}")
 #   }
 #
-#   if (!is.null(localidade_cod)) {
-#     consulta <- stringr::str_glue("{consulta}&regiao={localidade$localidade}")
+#   if (!is.null(localidade)) {
+#     consulta <- stringr::str_glue("{consulta}?localidade={localidade$localidade}")
 #   }
 #
 #   tab <- pega_tabela(consulta)
 #
-#   if (nrow(tab) == 0) {
-#     return(data.frame(nome = NA, sexo = NA, regiao = NA, decada_nascimento = NA, freq = NA))
+#   if (is.null(tab)) return(NULL)
+#
+#   tab <- pega_tabela(consulta) %>%
+#     dplyr::mutate(
+#       nascimento_periodo = corrige_periodo(periodo),
+#       nascimento_decada = as.integer(stringr::str_extract(periodo, "[:digit:]{4}"))
+#     ) %>%
+#     dplyr::left_join(localidade, by = c("localidade")) %>%
+#     dplyr::select(
+#       nome, sexo, localidade_cod = localidade, localidade_nome,
+#       nascimento_periodo, nascimento_decada, frequencia
+#     ) %>%
+#     dplyr::mutate(
+#       localidade_cod = ifelse(
+#         localidade_cod == "BR",
+#         localidade_cod,
+#         as.integer(localidade_cod)
+#       )
+#     )
+#
+#   if (!is.null(sexo)) {
+#     tab$sexo <- toupper(sexo)
 #   }
 #
-#   tab %>%
-#     dplyr::mutate(
-#       decada_nascimento = as.integer(stringr::str_extract(faixa, "[:digit:]{4}")) - 10L,
-#       regiao = ifelse(regiao == 0, NA_character_, regiao),
-#       sexo = ifelse(sexo == "", NA_character_, stringr::str_to_upper(sexo))
-#     ) %>%
-#     dplyr::select(nome, sexo, regiao, decada_nascimento, freq)
+#   tab
 # }
+#

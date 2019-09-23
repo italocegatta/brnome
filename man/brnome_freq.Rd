@@ -4,7 +4,8 @@
 \alias{brnome_freq}
 \title{Frenquencia por decada.}
 \usage{
-brnome_freq(nome, sexo = NULL, localidade_cod = NULL)
+brnome_freq(nome, sexo = NULL, localidade_cod = NULL,
+  decada_nascimento = NULL)
 }
 \arguments{
 \item{nome}{Vetor com um ou mais nomes a serem consultados.}
