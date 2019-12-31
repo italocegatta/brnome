@@ -14,7 +14,8 @@ pega_tabela <- function(x) {
   string_req %>%
     jsonlite::fromJSON() %>%
     dplyr::as_tibble() %>%
-    tidyr::unnest()
+    tidyr::unnest(res) %>%
+    dplyr::mutate(localidade = ifelse(localidade == "BR", NA_real_, as.numeric(localidade)))
 }
 
 corrige_periodo <- function(x) {
@@ -32,7 +33,7 @@ verifica_localidade <- function(x) {
 
   if (is.null(x)) {
 
-    return(data.frame(localidade = "BR", localidade_nome = "Brasil", stringsAsFactors = FALSE))
+    return(data.frame(localidade = NA_real_, localidade_nome = "Brasil", stringsAsFactors = FALSE))
   }
 
   if (length(x) != 1) {
@@ -40,10 +41,10 @@ verifica_localidade <- function(x) {
     stop("Insira apenas uma localidade", call. = FALSE)
   }
 
-  # if (!is.numeric(x)) {
-  #
-  #   stop("Localidade deve ser um valor numerico", call. = FALSE)
-  # }
+  if (!is.numeric(x)) {
+
+    stop("Localidade deve ser numerico", call. = FALSE)
+  }
 
   loc <- localidades %>%
     dplyr::filter(localidade == as.integer(x))
@@ -82,9 +83,14 @@ verifica_decada <- function(x) {
     return(x)
   }
 
-  if (length(x) != 1 & x %in% seq(1930, 2010, 10)) {
+  if (length(x) != 1) {
 
-    stop("Decada incorreta")
+    stop("Indique apenas uma decada", call. = FALSE)
+  }
+
+  if (!x %in% seq(1930, 2010, 10)) {
+
+    stop("Decada incorreta", call. = FALSE)
   }
 
   x

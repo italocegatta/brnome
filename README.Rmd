@@ -1,0 +1,132 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  fig.width = 8,
+  fig.height = 8,
+  dpi = 300
+)
+```
+
+# brnome
+
+<!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/brnome)]()
+[![Travis build status](https://travis-ci.org/italocegatta/brnome.svg?branch=master)](https://travis-ci.org/italocegatta/brnome)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/italocegatta/brnome?branch=master&svg=true)](https://ci.appveyor.com/project/italocegatta/brnome)
+[![Codecov test coverage](https://codecov.io/gh/italocegatta/brnome/branch/master/graph/badge.svg)](https://codecov.io/gh/italocegatta/brnome?branch=master)
+
+<!-- badges: end -->
+
+The goal of brnome is to ...
+
+## Installation
+
+You can install the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("italocegatta/brnome")
+```
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(brnome)
+library(brmap)
+library(tidyverse)
+
+joao_freq <- brnome_freq(nome = "joao")
+
+joao_freq
+```
+
+```{r}
+brnome_freq(nome = "joao", sexo = "m")
+```
+
+```{r}
+brnome_freq(nome = "joao", localidade_cod = 5103403)
+```
+
+```{r}
+brnome_freq(nome = "joao", localidade_cod = 51)
+```
+
+```{r}
+joao_estado <- localidades %>% 
+  filter(tipo == "Estado") %>% 
+  mutate(
+    freq = map(
+      localidade,
+      ~brnome_freq(nome = "joao", localidade_cod = .x) 
+    )
+  ) %>% 
+  select(freq) %>% 
+  unnest()
+
+joao_estado
+```
+
+```{r fig.height=5, fig.width=8}
+joao_estado %>% 
+  group_by(nascimento_decada) %>% 
+  summarise(frequencia = sum(frequencia)) %>% 
+  ggplot(aes(nascimento_decada, frequencia)) +
+    geom_line(size = 1) +
+    geom_point(shape = 21, color = "#35978f", fill =  "#80cdc1", size = 7, stroke = 2) +
+    labs(x = "Década de nascimento", y = "Frequência do nome joao") +
+    scale_x_continuous(breaks = seq(1900, 2020, 10)) + 
+    scale_y_continuous(limits = c(0, NA), labels = scales::unit_format(unit = "k", scale = 1e-3)) + 
+    theme_bw(16)
+```
+
+```{r}
+joao_estado %>% 
+  left_join(brmap_estado_simples, by = c("localidade_nome" = "estado_nome")) %>% 
+  st_as_sf() %>% 
+  ggplot(aes(fill = frequencia)) +
+    geom_sf(color = "white") +
+    labs(fill = "Frequência do nome joao") +
+    scale_fill_distiller(
+      palette = "Greens",
+      direction = 1,
+      labels = scales::unit_format(unit = "k", scale = 1e-3)
+    ) +
+    theme_bw() +
+    theme(legend.position = "bottom", legend.justification = "right") +
+    guides(fill = guide_colorbar(barwidth = 15, title.position = "top"))
+```
+
+```{r}
+rank_decada <- map_dfr(seq(1930, 2000, 10), ~brnome_rank(decada = .x))
+
+rank_decada %>%
+  ggplot(aes(decada, ranking, fill = frequencia, label = nome)) +
+  geom_line(aes(group = nome), alpha = 0.5) +
+  geom_label(color = "black", size = 3) +
+  #facet_wrap(~sexo, labeller = labeller(sexo = c("F" = "Feminino", "M" = "Masculino"))) +
+  labs(x = "Décade de nascimento", y = "Ranking", fill = "Frequência") +
+  scale_x_continuous(breaks = seq(1930, 2000, 10)) +
+  scale_y_reverse(breaks = 1:20) +
+  scale_fill_distiller(
+    palette = "PuBuGn", direction = 1, 
+    labels = scales::unit_format(unit = "k", scale = 1e-3)
+  ) +
+  theme_bw() +
+  theme(legend.position = "bottom", legend.justification = "right") +
+  guides(fill = guide_colorbar(barwidth = 20, title.position = "top"))
+```
+
+

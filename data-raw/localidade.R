@@ -23,7 +23,7 @@ estados <- "https://servicodados.ibge.gov.br/api/v1/localidades/estados" %>%
   dplyr::as_tibble()
 
 localidades <- dplyr::bind_rows(municipios, estados) %>%
-  dplyr::mutate(localidade = as.character(localidade))
+  dplyr::mutate(localidade = as.numeric(localidade))
 
 usethis::use_data(
   localidades,

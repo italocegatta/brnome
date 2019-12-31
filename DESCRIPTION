@@ -20,3 +20,6 @@ Imports:
     jsonlite,
     dplyr,
     purrr
+Suggests: 
+    covr,
+    testthat (>= 2.1.0)

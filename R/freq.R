@@ -28,8 +28,10 @@ brnome_freq <- function(nome, sexo = NULL, localidade_cod = NULL) {
     consulta <- stringr::str_glue("{consulta}?sexo={sexo}")
   }
 
-  if (!is.null(localidade)) {
+  if (!is.null(localidade_cod)) {
     consulta <- stringr::str_glue("{consulta}?localidade={localidade$localidade}")
+  } else {
+    consulta <- stringr::str_glue("{consulta}?localidade=BR")
   }
 
   tab <- pega_tabela(consulta)
